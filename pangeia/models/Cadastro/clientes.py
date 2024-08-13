@@ -10,7 +10,7 @@ class Clientes(Base):
         'ID_CONTRATO', Integer, nullable=False
     )
     id_cliente: Mapped[int] = mapped_column(
-        'ID_CLIENTE', Integer, primary_key=True, nullable=False
+        'ID_CLIENTE', Integer, nullable=False
     )
     id_emp_cli: Mapped[int] = mapped_column(
         'ID_EMP_CLI', Integer, nullable=False
@@ -28,10 +28,15 @@ class Clientes(Base):
     )
 
     id_cliente_completo: Mapped[str] = mapped_column(
-        'ID_CLIENTE_COMPLETO', String, nullable=False
+        'ID_CLIENTE_COMPLETO',
+        String,
+        primary_key=True
     )
 
-   # contas_receber = relationship('ContasReceber', back_populates='cliente')
+    contas_receber = relationship(
+        'ContasReceber', 
+        back_populates='cliente'
+    )
 
     def to_dict(self) -> dict:
         return {

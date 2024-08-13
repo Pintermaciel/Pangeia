@@ -1,17 +1,27 @@
 from models.connection import Base
 from sqlalchemy import Date, ForeignKey, Integer, Numeric, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 class ContasReceber(Base):
-    __tablename__ = 'CONTAS_RECEBER'
+    __tablename__ = 'contasreceber'
+    __table_args__ = {'schema': 'public'}
 
+    pk_contasreceber: Mapped[int] = mapped_column(
+        'pk_contasreceber',
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        nullable=False
+    )
+
+        
     id_contrato: Mapped[int] = mapped_column(
         'ID_CONTRATO',
         Integer,
         nullable=False,
     )
     id_contas_receber: Mapped[str] = mapped_column(
-        'ID_CONTAS_RECEBER', String, primary_key=True, nullable=False
+        'ID_CONTAS_RECEBER', String, nullable=False
     )
     id_emp_cli: Mapped[int] = mapped_column(
         'ID_EMP_CLI',
@@ -27,7 +37,7 @@ class ContasReceber(Base):
     id_cliente_completo: Mapped[str] = mapped_column(
         'ID_CLIENTE_COMPLETO',
         String,
-        #ForeignKey('Clientes.ID_CLIENTE_COMPLETO'),
+        ForeignKey('Clientes.ID_CLIENTE_COMPLETO'),
         nullable=False,
     )
     data_emissao: Mapped[Date] = mapped_column(
@@ -48,8 +58,13 @@ class ContasReceber(Base):
     valor_pagto: Mapped[Numeric] = mapped_column(
         'VALOR_PAGTO', Numeric(precision=10, scale=2), nullable=True
     )
-    forma_pagamento: Mapped[int] = mapped_column(
-        'FORMA_PAGAMENTO', Integer, nullable=False
+    forma_pagamento: Mapped[str] = mapped_column(
+        'FORMA_PAGAMENTO', String, nullable=False
+    )
+    
+    cliente = relationship(
+        'Clientes',
+        back_populates='contas_receber'
     )
 
     def to_dict(self):

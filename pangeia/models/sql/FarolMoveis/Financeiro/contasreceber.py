@@ -2,7 +2,7 @@ import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from models.connection import DatabaseConnection
+from models.connection import DatabaseConnection, DatabaseLoad
 from models.Financeiro.contasreceber import ContasReceber
 from sqlalchemy import MetaData, select
 from sqlalchemy.exc import SQLAlchemyError
@@ -17,11 +17,11 @@ class ContasReceberQuery:
         self.metadata.reflect(bind=self.db.engine)
         self.titulos_receber = self.metadata.tables.get('TITULOS_RECEBER')
 
-        self.db_load = DatabaseConnection()
+        self.db_load = DatabaseLoad()
         self.metadata_load = MetaData()
         self.metadata_load.reflect(bind=self.db_load.engine)
         self.contas_receber_table = self.metadata_load.tables.get(
-            'CONTAS_RECEBER'
+            'contasreceber'
         )
 
     def fetch_and_transform_data(self):
@@ -52,16 +52,18 @@ class ContasReceberQuery:
                 ContasReceber(
                     id_contas_receber=row[0],  # ID_CONTAS_RECEBER
                     id_contrato=1,
-                    id_emp_cli=row[1],         # ID_EMP_CLI
-                    id_cliente=row[2],         # ID_CLIENTE
-                    data_emissao=row[3],       # DATA_EMISSAO
-                    data_vencimento=row[4],    # DATA_VENCIMENTO
-                    data_pagamento=row[5],     # DATA_PAGAMENTO
-                    situacao=row[6],           # SITUACAO
-                    valor_docto=row[7],        # VALOR_DOCTO
-                    valor_pagto=row[8],        # VALOR_PAGTO
-                    forma_pagamento=row[9],    # FORMA_PAGAMENTO
-                    id_cliente_completo=(f'{row[0]}-{row[1]}-{row[2]}'),
+                    id_emp_cli=row[1],  # ID_EMP_CLI
+                    id_cliente=row[2],  # ID_CLIENTE
+                    data_emissao=row[3],  # DATA_EMISSAO
+                    data_vencimento=row[4],  # DATA_VENCIMENTO
+                    data_pagamento=row[5],  # DATA_PAGAMENTO
+                    situacao=row[6],  # SITUACAO
+                    valor_docto=row[7],  # VALOR_DOCTO
+                    valor_pagto=row[8],  # VALOR_PAGTO
+                    forma_pagamento=row[9],  # FORMA_PAGAMENTO
+                    id_cliente_completo=(
+                        f'{row[0]}-{row[1]}-{row[2]}'
+                    ),
                 )
                 for row in result_titulos_receber
             ]
@@ -84,11 +86,18 @@ class ContasReceberQuery:
         try:
             start_time = time.time()
 
-            existing_ids = [v.id_contas_receber for v in batch]
+            for conta in batch:
+                conta.id_cliente_completo = (
+                    f'{conta.id_contrato}-'
+                    f'{conta.id_emp_cli}-'
+                    f'{conta.id_cliente}'
+                )
+
+            existing_ids = [conta.id_cliente_completo for conta in batch]
             existing_records = {
-                v.id_contas_receber: v
+                v.id_cliente_completo: v
                 for v in session_load.query(ContasReceber)
-                .filter(ContasReceber.id_contas_receber.in_(existing_ids))
+                .filter(ContasReceber.id_cliente_completo.in_(existing_ids))
                 .all()
             }
 
@@ -99,12 +108,9 @@ class ContasReceberQuery:
             to_update = []
             to_add = []
             for conta in batch:
-                conta.id_cliente_completo = (
-                    f'{conta.id_contrato}-'
-                    f'{conta.id_emp_cli}-'
-                    f'{conta.id_cliente}'
+                existing_conta = existing_records.get(
+                    conta.id_cliente_completo
                 )
-                existing_conta = existing_records.get(conta.id_contas_receber)
                 if existing_conta:
                     if self.is_conta_different(existing_conta, conta):
                         self.update_existing_conta(existing_conta, conta)
@@ -115,30 +121,30 @@ class ContasReceberQuery:
                     logger.debug(f'Adicionado: {conta}')
 
             if to_update:
-                session_load.bulk_update_mappings(
-                    ContasReceber,
-                    [
-                        {
-                            'id_contas_receber': conta.id_contas_receber,
-                            'id_contrato': conta.id_contrato,
-                            'id_emp_cli': conta.id_emp_cli,
-                            'id_cliente': conta.id_cliente,
-                            'data_emissao': conta.data_emissao,
-                            'data_vencimento': conta.data_vencimento,
-                            'data_pagamento': conta.data_pagamento,
-                            'situacao': conta.situacao,
-                            'valor_docto': conta.valor_docto,
-                            'valor_pagto': conta.valor_pagto,
-                            'forma_pagamento': conta.forma_pagamento,
-                            'id_cliente_completo': conta.id_cliente_completo,
-                        }
-                        for conta in to_update
-                    ],
-                )
-                logger.info(
-                    f'Atualizados {len(to_update)} itens no lote '
-                    f'{batch_index}'
-                )
+                valid_updates = [
+                    {
+                        'pk_contasreceber': conta.pk_contasreceber,
+                        'id_contas_receber': conta.id_contas_receber,
+                        'id_contrato': conta.id_contrato,
+                        'id_emp_cli': conta.id_emp_cli,
+                        'id_cliente': conta.id_cliente,
+                        'data_emissao': conta.data_emissao,
+                        'data_vencimento': conta.data_vencimento,
+                        'data_pagamento': conta.data_pagamento,
+                        'situacao': conta.situacao,
+                        'valor_docto': conta.valor_docto,
+                        'valor_pagto': conta.valor_pagto,
+                        'forma_pagamento': conta.forma_pagamento,
+                        'id_cliente_completo': conta.id_cliente_completo,
+                    }
+                    for conta in to_update if conta.pk_contasreceber is not None 
+                ]
+                
+                if valid_updates:
+                    session_load.bulk_update_mappings(ContasReceber, valid_updates)
+                    logger.info(
+                        f'Atualizados {len(valid_updates)} itens no lote {batch_index}'
+                    )
             if to_add:
                 session_load.bulk_save_objects(to_add)
                 logger.info(

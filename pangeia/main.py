@@ -16,21 +16,23 @@ if __name__ == "__main__":
     db = DatabaseLoad()
     db.create_tables()
 
-    # produtos_query = ProdutosQuery()
-    # produtos_query.persist_data()
-    # clientes_query = ClientesQuery()
-    # clientes_query.persist_data()
-    # fornecedores_query = FornecedoresQuery()
-    # fornecedores_query.persist_data()
-    # grupo_produtos_query = GrupoProdutosQuery()
-    # grupo_produtos_query.persist_data()
-    # itens_venda_query = ItensVendaQuery()
-    # itens_venda_query.persist_data()
-    # vendas_query = VendasQuery()
-    # vendas_query.persist_data()
-    # vendedores_query = VendedoresQuery()
-    # vendedores_query.persist_data()
-    # estoque_query = EstoqueQuery
-    # estoque_query.persist.data()
-    contas_receber_query = ContasReceberQuery()
-    contas_receber_query.persist_data()
+    # Crie uma lista de objetos de consulta na ordem em que deseja executá-los
+    queries = [
+        ClientesQuery(),
+        ContasReceberQuery(),
+        # Adicione outras consultas conforme necessário
+        # ProdutosQuery(),
+        # FornecedoresQuery(),
+        # GrupoProdutosQuery(),
+        # ItensVendaQuery(),
+        # VendasQuery(),
+        # VendedoresQuery(),
+        # EstoqueQuery(),
+    ]
+
+    # Itere sobre a lista e execute o método persist_data para cada consulta
+    for query in queries:
+        try:
+            query.persist_data()
+        except Exception as e:
+            logger.error(f"Erro ao executar {query.__class__.__name__}: {e}")

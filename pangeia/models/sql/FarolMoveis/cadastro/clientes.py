@@ -1,5 +1,6 @@
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from models.Cadastro.clientes import Clientes
 from models.connection import DatabaseConnection, DatabaseLoad
@@ -7,7 +8,6 @@ from sqlalchemy import MetaData, Table, select
 from sqlalchemy.exc import SQLAlchemyError
 
 logger = logging.getLogger(__name__)
-
 
 class ClientesQuery:
     def __init__(self):
@@ -66,7 +66,8 @@ class ClientesQuery:
                     endereco=row.endereco,
                     estado=row.estado,
                     cidade=nom_cidade,
-                    telefone=row.telefone
+                    telefone=row.telefone,
+                    id_cliente_completo=f"1-1-{row.id_cliente}"
                 )
                 clientes_list.append(cliente)
                 logger.debug(f"Cliente adicionado à lista: {cliente}")
@@ -80,40 +81,127 @@ class ClientesQuery:
             logger.info("Fechando a sessão de consulta")
             session.close()
 
+    def process_batch(self, batch, batch_index):
+        session_load = self.db_load.get_session()
+        logger.info(
+            f'Iniciando processamento do lote {batch_index} com '
+            f'{len(batch)} itens'
+        )
+
+        try:
+            start_time = time.time()
+
+            existing_ids = [cliente.id_cliente for cliente in batch]
+            existing_records = {
+                v.id_cliente: v
+                for v in session_load.query(Clientes)
+                .filter(Clientes.id_cliente.in_(existing_ids))
+                .all()
+            }
+
+            logger.info(
+                f'Registros existentes carregados para o lote {batch_index}'
+            )
+
+            to_update = []
+            to_add = []
+            for cliente in batch:
+                existing_cliente = existing_records.get(cliente.id_cliente)
+                if existing_cliente:
+                    if self.is_cliente_different(existing_cliente, cliente):
+                        self.update_existing_cliente(existing_cliente, cliente)
+                        to_update.append(existing_cliente)
+                        logger.debug(f'Atualizado: {cliente}')
+                else:
+                    to_add.append(cliente)
+                    logger.debug(f'Adicionado: {cliente}')
+
+            if to_update:
+                session_load.bulk_update_mappings(
+                    Clientes,
+                    [
+                        {
+                            'id_cliente': cliente.id_cliente,
+                            'id_contrato': cliente.id_contrato,
+                            'id_emp_cli': cliente.id_emp_cli,
+                            'razao_social': cliente.razao_social,
+                            'endereco': cliente.endereco,
+                            'estado': cliente.estado,
+                            'cidade': cliente.cidade,
+                            'telefone': cliente.telefone,
+                            'id_cliente_completo': cliente.id_cliente_completo
+                        }
+                        for cliente in to_update
+                    ],
+                )
+                logger.info(
+                    f'Atualizados {len(to_update)} itens no lote '
+                    f'{batch_index}'
+                )
+            if to_add:
+                session_load.bulk_save_objects(to_add)
+                logger.info(
+                    f'Adicionados {len(to_add)} novos itens no lote '
+                    f'{batch_index}'
+                )
+            session_load.commit()
+
+            total_time = time.time() - start_time
+            logger.info(
+                f'Tempo total para processar o lote {batch_index}: '
+                f'{total_time:.2f} segundos'
+            )
+        except SQLAlchemyError as e:
+            logger.error(f'Erro ao persistir dados no lote {batch_index}: {e}')
+            session_load.rollback()
+        finally:
+            session_load.close()
+            logger.info(
+                f'Sessão de banco de dados fechada após processar o lote '
+                f'{batch_index}'
+            )
+
+    @staticmethod
+    def is_cliente_different(existing_cliente, cliente):
+        return (
+            existing_cliente.razao_social != cliente.razao_social
+            or existing_cliente.endereco != cliente.endereco
+            or existing_cliente.estado != cliente.estado
+            or existing_cliente.cidade != cliente.cidade
+            or existing_cliente.telefone != cliente.telefone
+        )
+
+    @staticmethod
+    def update_existing_cliente(existing_cliente, cliente):
+        existing_cliente.razao_social = cliente.razao_social
+        existing_cliente.endereco = cliente.endereco
+        existing_cliente.estado = cliente.estado
+        existing_cliente.cidade = cliente.cidade
+        existing_cliente.telefone = cliente.telefone
+
     def persist_data(self):
         try:
             clientes_list = self.fetch_and_transform_data()
-            session_load = self.db_load.get_session()
-            logger.info("Iniciando a sessão para persistência de dados")
+            logger.info(
+                f'Total de itens recuperados para processamento: '
+                f'{len(clientes_list)}'
+            )
+            batch_size = 500
 
-            for cliente in clientes_list:
-                existing_cliente = session_load.query(Clientes).filter_by(id_cliente=cliente.id_cliente).first()
+            with ThreadPoolExecutor(max_workers=15) as executor:
+                futures = [
+                    executor.submit(
+                        self.process_batch,
+                        clientes_list[i : i + batch_size],
+                        i // batch_size + 1,
+                    )
+                    for i in range(0, len(clientes_list), batch_size)
+                ]
 
-                if existing_cliente:
-                    logger.info(f"Cliente existente encontrado com ID: {cliente.id_cliente}, verificando necessidade de atualização")
-                    if (existing_cliente.razao_social != cliente.razao_social or
-                        existing_cliente.endereco != cliente.endereco or
-                        existing_cliente.estado != cliente.estado or
-                        existing_cliente.cidade != cliente.cidade or
-                        existing_cliente.telefone != cliente.telefone):
-
-                        logger.info(f"Atualizando dados do cliente ID: {cliente.id_cliente}")
-                        existing_cliente.razao_social = cliente.razao_social
-                        existing_cliente.endereco = cliente.endereco
-                        existing_cliente.estado = cliente.estado
-                        existing_cliente.cidade = cliente.cidade
-                        existing_cliente.telefone = cliente.telefone
-                        session_load.add(existing_cliente)
-                else:
-                    logger.info(f"Adicionando novo cliente com ID: {cliente.id_cliente}")
-                    session_load.add(cliente)
-
-            session_load.commit()
-            logger.info("Dados persistidos com sucesso!")
-
-        except SQLAlchemyError as e:
-            logger.error(f"Erro ao persistir dados: {e}")
-            session_load.rollback()
-        finally:
-            logger.info("Fechando a sessão de persistência")
-            session_load.close()
+                for future in as_completed(futures):
+                    try:
+                        future.result()
+                    except Exception as e:
+                        logger.error(f'Erro no processamento do lote: {e}')
+        except Exception as e:
+            logger.error(f'Erro não tratado em persist_data: {e}')
