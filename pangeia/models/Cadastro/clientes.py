@@ -9,22 +9,38 @@ class Clientes(Base):
     id_contrato: Mapped[int] = mapped_column(
         'ID_CONTRATO', Integer, nullable=False
     )
+    
     id_cliente: Mapped[int] = mapped_column(
         'ID_CLIENTE', Integer, nullable=False
     )
+    
     id_emp_cli: Mapped[int] = mapped_column(
         'ID_EMP_CLI', Integer, nullable=False
     )
+    
     razao_social: Mapped[str] = mapped_column(
         'RAZAO_SOCIAL', String(100), nullable=False
     )
+    
     endereco: Mapped[str | None] = mapped_column(
         'ENDERECO', String, nullable=True
     )
-    estado: Mapped[str] = mapped_column('ESTADO', String(2), nullable=False)
-    cidade: Mapped[str] = mapped_column('CIDADE', String(50), nullable=False)
+    
+    estado: Mapped[str] = mapped_column(
+        'ESTADO', 
+        String(2), 
+        nullable=False
+        )
+    cidade: Mapped[str] = mapped_column(
+        'CIDADE', 
+        String(50), 
+        nullable=False
+        )
+    
     telefone: Mapped[str | None] = mapped_column(
-        'TELEFONE', String, nullable=True
+        'TELEFONE', 
+        String, 
+        nullable=True
     )
 
     id_cliente_completo: Mapped[str] = mapped_column(

@@ -21,7 +21,9 @@ class ContasReceber(Base):
         nullable=False,
     )
     id_contas_receber: Mapped[str] = mapped_column(
-        'ID_CONTAS_RECEBER', String, nullable=False
+        'ID_CONTAS_RECEBER', 
+        String, 
+        nullable=False
     )
     id_emp_cli: Mapped[int] = mapped_column(
         'ID_EMP_CLI',
@@ -41,25 +43,39 @@ class ContasReceber(Base):
         nullable=False,
     )
     data_emissao: Mapped[Date] = mapped_column(
-        'DATA_EMISSAO', Date, nullable=False
+        'DATA_EMISSAO', 
+        Date, 
+        nullable=False
     )
     data_vencimento: Mapped[Date] = mapped_column(
-        'DATA_VENCIMENTO', Date, nullable=False
+        'DATA_VENCIMENTO', 
+        Date, 
+        nullable=False
     )
     data_pagamento: Mapped[Date] = mapped_column(
-        'DATA_PAGAMENTO', Date, nullable=True
+        'DATA_PAGAMENTO', 
+        Date, 
+        nullable=True
     )
     situacao: Mapped[str] = mapped_column(
-        'SITUACAO', String(50), nullable=True
+        'SITUACAO', 
+        String(50), 
+        nullable=True
     )
     valor_docto: Mapped[Numeric] = mapped_column(
-        'VALOR_DOCTO', Numeric(precision=10, scale=2), nullable=False
+        'VALOR_DOCTO', 
+        Numeric(precision=10, scale=2), 
+        nullable=False
     )
     valor_pagto: Mapped[Numeric] = mapped_column(
-        'VALOR_PAGTO', Numeric(precision=10, scale=2), nullable=True
+        'VALOR_PAGTO', 
+        Numeric(precision=10, scale=2), 
+        nullable=True
     )
     forma_pagamento: Mapped[str] = mapped_column(
-        'FORMA_PAGAMENTO', String, nullable=False
+        'FORMA_PAGAMENTO', 
+        String, 
+        nullable=False
     )
     
     cliente = relationship(

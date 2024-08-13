@@ -9,8 +9,16 @@ from models.sql.FarolMoveis.cadastro.produtos import ProdutosQuery
 from models.sql.FarolMoveis.cadastro.vendedores import VendedoresQuery
 from models.sql.FarolMoveis.comercial.vendas import VendasQuery
 from models.sql.FarolMoveis.Financeiro.contasreceber import ContasReceberQuery
+from models.sql.FarolMoveis.Financeiro.contaspagar import ContasPagarQuery
+import sys
 
+logging.basicConfig(
+    level=logging.DEBUG, 
+    format='%(asctime)s - %(levelname)s - %(message)s', 
+    stream=sys.stdout
+    )
 logger = logging.getLogger(__name__)
+
 
 if __name__ == "__main__":
     db = DatabaseLoad()
@@ -18,11 +26,12 @@ if __name__ == "__main__":
 
     # Crie uma lista de objetos de consulta na ordem em que deseja executá-los
     queries = [
-        ClientesQuery(),
-        ContasReceberQuery(),
+        #ClientesQuery(),
+        #ContasReceberQuery(),
         # Adicione outras consultas conforme necessário
-        # ProdutosQuery(),
         # FornecedoresQuery(),
+        ContasPagarQuery(),
+        # ProdutosQuery(),
         # GrupoProdutosQuery(),
         # ItensVendaQuery(),
         # VendasQuery(),
@@ -30,9 +39,10 @@ if __name__ == "__main__":
         # EstoqueQuery(),
     ]
 
-    # Itere sobre a lista e execute o método persist_data para cada consulta
     for query in queries:
         try:
+            logger.info(f"Iniciando {query.__class__.__name__}")
             query.persist_data()
+            logger.info(f"Finalizado {query.__class__.__name__}")
         except Exception as e:
             logger.error(f"Erro ao executar {query.__class__.__name__}: {e}")

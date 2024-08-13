@@ -61,6 +61,6 @@ crew = Crew(
 )
 
 # Execução do processo
-result = crew.kickoff(inputs={'question': 'Quanto a talita vendeu no mês de julho?', 'schema': get_schema(None)})
+result = crew.kickoff(inputs={'question': 'quanto que eu paguei no mês de junho desse ano? e quanto eu recebi?', 'schema': get_schema(None)})
 
 print(result)
