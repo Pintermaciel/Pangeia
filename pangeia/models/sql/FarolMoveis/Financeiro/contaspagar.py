@@ -1,3 +1,4 @@
+import re
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -63,6 +64,7 @@ class ContasPagarQuery:
             # Terceira consulta: UN_PLANO_CONTAS
             query_un_plano_contas = select(
                 self.un_plano_contas.c.COD_CONTA_GERENCIAL,
+                self.un_plano_contas.c.COD_CLASS_FISCAL
             )
 
             result_un_plano_contas = session.execute(query_un_plano_contas).fetchall()
@@ -79,11 +81,18 @@ class ContasPagarQuery:
                 for row in result_un_plano_contas
             }
             logger.info(f"plano_contas_map: {plano_contas_map}")
+            
+            mapa_fiscal = {
+                row.COD_CONTA_GERENCIAL: row.COD_CLASS_FISCAL
+                for row in result_un_plano_contas
+            }
+            logger.info(f"plano_contas_map: {plano_contas_map}")
 
             contas_pagar_list = []
             for row in result_titulos_pagar:
                 chave = (row.ID_CONTAS_PAGAR, row.ID_EMP_CLI)
                 cod_conta_gerencial = un_titulos_map.get(chave)
+                id_mapa_fiscal = mapa_fiscal.get(cod_conta_gerencial)
 
                 if cod_conta_gerencial is None:
                     logger.warning(f"Chave {chave} não encontrada em un_titulos_map")
@@ -99,11 +108,13 @@ class ContasPagarQuery:
                         )
 
                     fk_contrato_fornecedor = f"1-{row.ID_FORNECEDOR}"
+                    fk_contrato_despesa = f"1-{id_despesa}"
 
                     contas_pagar = ContasPagar(
                         id_contas_pagar=row.ID_CONTAS_PAGAR,
                         id_contrato=1,
                         fk_contrato_fornecedor=fk_contrato_fornecedor,
+                        fk_contrato_despesa=fk_contrato_despesa,
                         id_emp_cli=row.ID_EMP_CLI,
                         id_fornecedor=row.ID_FORNECEDOR,
                         id_despesa=id_despesa,
@@ -112,7 +123,8 @@ class ContasPagarQuery:
                         situacao_cp=row.SITUACAO_CP,
                         valor_docto_cp=row.VALOR_DOCTO_CP,
                         valor_pagto_cp=row.VALOR_PAGTO_CP,
-                        data_vencimento_cp=row.DATA_VENCIMENTO_CP
+                        data_vencimento_cp=row.DATA_VENCIMENTO_CP,
+                        class_fiscal=id_mapa_fiscal
                     )
                     contas_pagar_list.append(contas_pagar)
 
@@ -123,6 +135,31 @@ class ContasPagarQuery:
         finally:
             logger.info("Closing the session")
             session.close()
+
+    def update_column_based_on_regex(
+        self, 
+        contas_pagar_list, 
+        column_to_update, 
+        column_to_check, 
+        regex_pattern, 
+        update_value_column=None
+    ):
+        pattern = re.compile(regex_pattern)
+
+        updated_count = 0
+        for conta in contas_pagar_list:
+            column_value = getattr(conta, column_to_check.key)
+            if pattern.match(column_value):
+                update_value = getattr(conta, update_value_column.key) if update_value_column else None
+                setattr(conta, column_to_update.key, update_value)
+                updated_count += 1
+
+        logger.info(
+            "Atualizados %d registros na coluna %s.", 
+            updated_count, 
+            column_to_update.key
+        )
+
 
     def process_batch(self, batch, batch_index):
         session = self.db_load.get_session()
@@ -242,6 +279,23 @@ class ContasPagarQuery:
                 f'Total de itens recuperados para processamento: '
                 f'{len(contas_pagar_list)}'
             )
+            
+            self.update_column_based_on_regex(
+                contas_pagar_list=contas_pagar_list,
+                column_to_update=ContasPagar.valor_total_despesa,
+                column_to_check=ContasPagar.class_fiscal,
+                regex_pattern=r'6.*',
+                update_value_column=ContasPagar.valor_pagto_cp
+            )
+            
+            self.update_column_based_on_regex(
+                contas_pagar_list=contas_pagar_list,
+                column_to_update=ContasPagar.valor_total_custo,
+                column_to_check=ContasPagar.class_fiscal,
+                regex_pattern=r'4.*',
+                update_value_column=ContasPagar.valor_pagto_cp
+            )
+            
             batch_size = 500
 
             with ThreadPoolExecutor(max_workers=15) as executor:

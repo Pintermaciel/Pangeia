@@ -1,14 +1,48 @@
 from models.connection import Base
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Integer, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class PlanoConta(Base):
-    __tablename__ = 'Plano_Conta'
+    __tablename__ = 'plano_conta'
+    __table_args__ = (UniqueConstraint('ID_CONTA', 'FK_CONTRATO_DESPESA'),)
 
-    id_contrato: Mapped[int] = mapped_column('ID_CONTRATO', nullable=False)
-    id_conta: Mapped[int] = mapped_column('ID_CONTA', primary_key=True, nullable=False)
-    mascara: Mapped[str] = mapped_column('MASCARA', nullable=False)
-    descricao_conta: Mapped[str] = mapped_column('DESCRICAO_CONTA', nullable=False)
+    id_contrato: Mapped[int] = mapped_column(
+        'ID_CONTRATO', 
+        Integer,
+        nullable=False
+        )
+    id_conta: Mapped[int] = mapped_column(
+        'ID_CONTA', 
+        Integer,
+        primary_key=True, 
+        nullable=False)
+    mascara: Mapped[str] = mapped_column(
+        'MASCARA', 
+        String,
+        nullable=False
+        )
+    descricao_conta: Mapped[str] = mapped_column(
+        'DESCRICAO_CONTA', 
+        String,
+        nullable=False
+        )
+    
+    fk_contrato_despesa: Mapped[str] = mapped_column(
+        'FK_CONTRATO_DESPESA',
+        String,
+        nullable=False,
+        unique=True 
+    )
+
+    contas_pagar = relationship(
+        'ContasPagar',
+        back_populates='plano_conta',
+        primaryjoin=(
+            "PlanoConta.fk_contrato_despesa == "
+            "foreign(ContasPagar.fk_contrato_despesa)"
+        )
+    )
 
     def to_dict(self):
         return {

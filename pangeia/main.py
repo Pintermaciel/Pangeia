@@ -10,6 +10,7 @@ from models.sql.FarolMoveis.cadastro.vendedores import VendedoresQuery
 from models.sql.FarolMoveis.comercial.vendas import VendasQuery
 from models.sql.FarolMoveis.Financeiro.contasreceber import ContasReceberQuery
 from models.sql.FarolMoveis.Financeiro.contaspagar import ContasPagarQuery
+from models.sql.FarolMoveis.Financeiro.plano_conta import PlanoContaQuery
 import sys
 
 logging.basicConfig(
@@ -26,11 +27,11 @@ if __name__ == "__main__":
 
     # Crie uma lista de objetos de consulta na ordem em que deseja executá-los
     queries = [
-        #ClientesQuery(),
-        #ContasReceberQuery(),
-        # Adicione outras consultas conforme necessário
+        # ClientesQuery(),
+        # ContasReceberQuery(),
         # FornecedoresQuery(),
         ContasPagarQuery(),
+        # PlanoContaQuery(),
         # ProdutosQuery(),
         # GrupoProdutosQuery(),
         # ItensVendaQuery(),

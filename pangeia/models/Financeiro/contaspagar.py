@@ -21,6 +21,22 @@ class ContasPagar(Base):
 
     fornecedor = relationship('Fornecedores', back_populates='contas_pagar')
 
+    fk_contrato_despesa: Mapped[str] = mapped_column(
+        'FK_CONTRATO_DESPESA',
+        String,
+        ForeignKey('plano_conta.FK_CONTRATO_DESPESA'),
+        nullable=False,
+    )
+
+    plano_conta = relationship(
+        'PlanoConta',
+        back_populates='contas_pagar',
+        primaryjoin=(
+            "foreign(ContasPagar.fk_contrato_despesa) == "
+            "PlanoConta.fk_contrato_despesa"
+        )
+    )
+    
     id_contrato: Mapped[int] = mapped_column(
         'ID_CONTRATO', Integer, nullable=False
     )
@@ -54,6 +70,15 @@ class ContasPagar(Base):
     data_vencimento_cp: Mapped[Date] = mapped_column(
         'DATA_VENCIMENTO_CP', Date, nullable=False
     )
+    class_fiscal: Mapped[str] = mapped_column(
+        'CLASS_FISCAL', String, nullable=True
+    )
+    valor_total_despesa: Mapped[Numeric] = mapped_column(
+        'VALOR_TOTAL_DESPESA', Numeric, nullable=True
+    )
+    valor_total_custo: Mapped[Numeric] = mapped_column(
+        'VALOR_TOTAL_CUSTO', Numeric, nullable=True
+    )
 
     def to_dict(self):
         return {
@@ -70,6 +95,9 @@ class ContasPagar(Base):
             'valor_docto_cp': self.valor_docto_cp,
             'valor_pagto_cp': self.valor_pagto_cp,
             'data_vencimento_cp': self.data_vencimento_cp,
+            'class_fiscal': self.class_fiscal,
+            'valor_total_despesa': self.valor_total_despesa,
+            'valor_total_custo': self.valor_total_custo
         }
 
     def __repr__(self):
