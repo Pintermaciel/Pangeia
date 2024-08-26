@@ -177,3 +177,17 @@ pyrightconfig.json
 
 # Generated using ignr.py - github.com/Antrikshy/ignr.py
 
+# Docker files
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+.env
+.dockerignore
+
+# Docker directories
+/docker-sync
+/docker-compose/
+
+# Docker volumes
+/volumes/
+/data/

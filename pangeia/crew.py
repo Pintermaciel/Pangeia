@@ -236,11 +236,11 @@ def execute_analysis(question):
     return result
 
 
-# # Execução do processo para calcular despesas
-# # question_despesa = 'quanto eu paguei de despesa nesse ano?'
-# # result_despesa = execute_analysis(question_despesa)
+# Execução do processo para calcular despesas
+# question_despesa = 'quanto eu paguei de despesa nesse ano?'
+# result_despesa = execute_analysis(question_despesa)
 
-# # Execução do processo para calcular custos
+# Execução do processo para calcular custos
 # question_custo = 'quanto eu paguei de custo nesse ano?'
 # result_custo = execute_analysis(question_custo)
 

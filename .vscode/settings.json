@@ -22,5 +22,6 @@
     "peacock.remoteColor": "#000000",
     "python.analysis.extraPaths": [
         "./pangeia"
-    ]
+    ],
+    "remote.autoForwardPortsFallback": 0
 }
