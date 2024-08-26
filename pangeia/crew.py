@@ -1,4 +1,4 @@
-from cfg import Config
+from pangeia.cfg import Config
 from crewai import Agent, Crew, Process, Task
 from crewai_tools import tool
 from langchain_community.utilities import SQLDatabase
@@ -80,7 +80,7 @@ query_request_agent = Agent(
 
 query_request_task = Task(
     description=(
-        'Baseado na pergunta "{question}",' 
+        'Baseado na pergunta "{question}",'
         "identifique as queries SQL necessárias para obter os dados corretos."
         "Além de responder diretamente à pergunta," 
         "considere outras consultas SQL que possam ser relevantes, "
@@ -224,7 +224,7 @@ def execute_analysis(question):
     
     # Inputs iniciais para o kickoff
     generator_inputs = {
-        'question': question,
+        'question': question,   
         'schema': schema,
         'column_mapping': column_mapping,
         'description': description,
@@ -236,13 +236,13 @@ def execute_analysis(question):
     return result
 
 
-# Execução do processo para calcular despesas
-question_despesa = 'quanto eu paguei de despesa nesse ano?'
-result_despesa = execute_analysis(question_despesa)
+# # Execução do processo para calcular despesas
+# # question_despesa = 'quanto eu paguei de despesa nesse ano?'
+# # result_despesa = execute_analysis(question_despesa)
 
-# Execução do processo para calcular custos
-question_custo = 'quanto eu paguei de custo nesse ano?'
-result_custo = execute_analysis(question_custo)
+# # Execução do processo para calcular custos
+# question_custo = 'quanto eu paguei de custo nesse ano?'
+# result_custo = execute_analysis(question_custo)
 
-print(result_despesa)
-print(result_custo)
+# #print(result_despesa)
+# print(result_custo)
