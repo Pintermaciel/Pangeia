@@ -10,7 +10,7 @@ column_mapping = {
 
 
 def get_column_from_question(question):
-    MINIMUM_MATCH_SCORE = 80
+    MINIMUM_MATCH_SCORE = 40
     keywords = column_mapping.keys()
     best_match, match_score = process.extractOne(question.lower(), keywords)
 

@@ -1,5 +1,6 @@
-from pangeia.cfg import Config
 from langchain_groq import ChatGroq
+
+from pangeia.cfg import Config
 
 # Configuração do LLM
 llm = ChatGroq(
