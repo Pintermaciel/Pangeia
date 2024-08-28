@@ -21,7 +21,9 @@
     },
     "peacock.remoteColor": "#000000",
     "python.analysis.extraPaths": [
-        "./pangeia"
+        "./pangeia",
+        "./pangeia/ETL",
+        "./pangeia/etl"
     ],
     "remote.autoForwardPortsFallback": 0
 }

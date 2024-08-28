@@ -28,6 +28,9 @@ class Config:
 
     # Configurações da OpenAI
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    
+    # Configurações do Groq
+    GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
     @property
     def DATABASE_URL(self):
