@@ -7,7 +7,7 @@ app = FastAPI()
 
 
 class QueryRequest(BaseModel):
-    question: str   
+    question: str
 
 
 @app.post("/execute_query/")

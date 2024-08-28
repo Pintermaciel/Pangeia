@@ -8,7 +8,9 @@ dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
 else:
-    raise FileNotFoundError(f"Arquivo .env não encontrado no caminho: {dotenv_path}")
+    raise FileNotFoundError(
+        f"Arquivo .env não encontrado no caminho: {dotenv_path}"
+    )
 
 
 class Config:
@@ -28,13 +30,12 @@ class Config:
 
     # Configurações da OpenAI
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-    
+
     # Configurações do Groq
     GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
     @property
     def DATABASE_URL(self):
-        # Garantir que a senha seja uma string e escapar a senha com caracteres especiais
         password_encoded = quote_plus(self.DATABASE_PASSWORD)
 
         # Construa a URL de acordo com o tipo de banco de dados
