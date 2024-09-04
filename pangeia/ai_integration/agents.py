@@ -66,7 +66,7 @@ pam_rex_agent = Agent(
         "insights claros e acessíveis, para que qualquer pessoa\n"
         "possa entender."
     ),
-    tools=[],
+    tools=[execute_query_tool],
     allow_delegation=False,
     verbose=True,
     llm=llm

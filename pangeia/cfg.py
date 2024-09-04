@@ -3,14 +3,7 @@ from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
 
-# Carregar variáveis de ambiente do arquivo .env
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path)
-else:
-    raise FileNotFoundError(
-        f"Arquivo .env não encontrado no caminho: {dotenv_path}"
-    )
+load_dotenv()
 
 
 class Config:
