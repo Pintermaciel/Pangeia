@@ -11,7 +11,7 @@ async def send_to_evolution_api(number: str, text: str):
     url = "https://evolution.zeuslab.app/message/sendText/banansilvanathi"
     headers = {"apiKey": f"{EVOLUTION_API_KEY}"}
     data = {
-        "number": number,
+        "number": f"{number}@s.whatsapp.net",
         "textMessage": {
             "text": text
         }
