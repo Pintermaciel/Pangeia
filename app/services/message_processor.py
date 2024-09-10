@@ -1,10 +1,10 @@
 import asyncio
 from typing import Dict
+
 from app.models.webhook_data import WebhookData
 from app.services.analysis_service import execute_analysis
-from app.utils.timer import Timer
 from app.services.evolution_api_service import send_to_evolution_api
-
+from app.utils.timer import Timer
 
 
 class MessageProcessor:
@@ -53,12 +53,12 @@ class MessageProcessor:
 
     async def _process_messages(self, phone: str):
         messages = self.messages_by_phone.pop(phone, [])
-        if phone in [
+        if phone in {
             "554898523000",
             "554899952533",
             "554891069028",
             "554891890377"
-            ] and messages:
+            } and messages:
             message_complete = " ".join([msg["message"] for msg in messages])
             print(f"iniciando processamento para {phone}")
             result = execute_analysis(message_complete)
@@ -72,10 +72,9 @@ class MessageProcessor:
                 print(f"Envio para Evolution API bem-sucedido: {response}")
             except Exception as e:
                 print(f"Erro ao enviar para Evolution API: {e}")
+        elif phone != "55484070000":
+            print(f"Número de telefone não autorizado: {phone}")
+        elif not messages:
+            print(f"Nenhuma mensagem para processar para {phone}")
         else:
-            if phone != "55484070000":
-                print(f"Número de telefone não autorizado: {phone}")
-            elif not messages:
-                print(f"Nenhuma mensagem para processar para {phone}")
-            else:
-                print(f"Condição não atendida para o número {phone}")
+            print(f"Condição não atendida para o número {phone}")

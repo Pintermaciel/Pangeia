@@ -1,7 +1,7 @@
-from fastapi import FastAPI
-from app.api import webhook, query
 from dotenv import load_dotenv
-import os
+from fastapi import FastAPI
+
+from app.api import query, webhook
 
 # Carregar o arquivo .env padrão
 load_dotenv()

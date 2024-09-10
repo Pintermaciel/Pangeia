@@ -1,6 +1,7 @@
+import traceback
+
 from crewai import Agent, Crew, Process, Task
 from crewai_tools import tool
-import json
 
 from .database import get_schema, run_query
 from .llm import llm
@@ -18,10 +19,13 @@ query_request_agent = Agent(
     role='SQL Query Requester',
     goal=(
         "Interpretar a pergunta do usuário e identificar as queries SQL "
-        "necessárias para responder à pergunta. Se uma abordagem não funcionar, "
-        "tente uma diferente. Varie as consultas e use diferentes tabelas ou junções "
-        "se necessário. As colunas devem sempre estar entre aspas duplas, e o nome "
-        "da tabela e da coluna deve ser validado no banco de dados. As queries devem "
+        "necessárias para responder à pergunta. "
+        "Se uma abordagem não funcionar, "
+        "tente uma diferente. Varie as consultas e "
+        "use diferentes tabelas ou junções "
+        "se necessário. As colunas devem sempre estar entre aspas duplas,"
+        "e o nome da tabela e da coluna deve ser validado"
+        " no banco de dados. As queries devem "
         "conter somente as colunas necessárias, para otimizar a consulta."
     ),
     backstory=(
@@ -42,18 +46,25 @@ query_request_task = Task(
     description=(
         "Baseado na pergunta '{question}', "
         "identifique as queries SQL necessárias para obter os dados corretos. "
-        "Verifique se as tabelas no schema {schema} e as colunas necessárias existem no banco de dados, "
+        "Verifique se as tabelas no schema {schema} "
+        "e as colunas necessárias existem no banco de dados, "
         "e use as funções PostgreSQL adequadas. "
         "Instruções para execução de consultas SQL:\n"
-        "1. Ao formular uma consulta SQL, sempre a envie como um JSON com a chave 'query'.\n"
-        "2. O formato correto para usar a ferramenta 'Execute query DB tool' é:\n"
+        "1. Ao formular uma consulta SQL, sempre a envie"
+        "como um JSON com a chave 'query'.\n"
+        "2. O formato correto para usar a "
+        "ferramenta 'Execute query DB tool' é:\n"
         "Action: Execute query DB tool\n"
-        "Action Input: {{\"query\": \"SELECT column1, column2 FROM table WHERE condition;\"}}\n"
-        "3. Certifique-se de que a consulta SQL esteja completa e correta antes de enviá-la.\n"
+        "Action Input: {{\"query\": \"SELECT column1, column2 "
+        "FROM table WHERE condition;\"}}\n"
+        "3. Certifique-se de que a consulta SQL"
+        "esteja completa e correta antes de enviá-la.\n"
         "4. Exemplo correto:\n"
         "Action: Execute query DB tool\n"
-        "Action Input: {{\"query\": \"SELECT \\\"ID_CONTAS_PAGAR\\\", \\\"DATA_VENCIMENTO_CP\\\" FROM "
-        "\\\"contas_pagar\\\" WHERE \\\"DATA_VENCIMENTO_CP\\\" < CURRENT_DATE;\"}}\n"
+        "Action Input: {{\"query\": \"SELECT \\\"ID_CONTAS_PAGAR\\\", "
+        "\\\"DATA_VENCIMENTO_CP\\\" FROM "
+        "\\\"contas_pagar\\\" "
+        "WHERE \\\"DATA_VENCIMENTO_CP\\\" < CURRENT_DATE;\"}}\n"
     ),
     expected_output=(
         "Retorne uma descrição detalhada das consultas, "
@@ -114,16 +125,15 @@ crew = Crew(
     manager_llm=llm
 )
 
-import traceback
 
 def execute_analysis(question):
     try:
         schema = get_schema()  # Obtém o schema do banco de dados
         print(f"Schema obtido: {schema}")
-        
+
         description = query_request_agent_logic(question)
         print(f"description: {description}")
-        
+
         print("Iniciando crew.kickoff()...")
         inputs = {
             'question': question,
@@ -131,11 +141,11 @@ def execute_analysis(question):
             'description': description,
         }
         print(f"Inputs para crew.kickoff(): {inputs}")
-        
+
         # Executa o crew com os inputs
         result = crew.kickoff(inputs=inputs)
         print(f"Resultado do crew.kickoff(): {result}")
-        
+
         return result
     except Exception as e:
         print(f"Erro durante a execução de execute_analysis: {str(e)}")

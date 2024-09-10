@@ -1,4 +1,5 @@
 from langchain_openai import ChatOpenAI
+
 from pangeia.cfg import Config
 
 # Configuração do LLM

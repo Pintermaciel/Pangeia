@@ -2,7 +2,17 @@ import logging
 import sys
 
 from models.connection import DatabaseLoad
+from models.sql.FarolMoveis.cadastro.clientes import ClientesQuery
+from models.sql.FarolMoveis.cadastro.fornecedores import FornecedoresQuery
+from models.sql.FarolMoveis.cadastro.grupo_produtos import GrupoProdutosQuery
+from models.sql.FarolMoveis.cadastro.itens_venda import ItensVendaQuery
+from models.sql.FarolMoveis.cadastro.produtos import ProdutosQuery
+from models.sql.FarolMoveis.cadastro.vendedores import VendedoresQuery
+from models.sql.FarolMoveis.comercial.vendas import VendasQuery
+from models.sql.FarolMoveis.Estoque.estoque import EstoqueQuery
 from models.sql.FarolMoveis.Financeiro.contaspagar import ContasPagarQuery
+from models.sql.FarolMoveis.Financeiro.contasreceber import ContasReceberQuery
+from models.sql.FarolMoveis.Financeiro.plano_conta import PlanoContaQuery
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -18,17 +28,17 @@ if __name__ == "__main__":
 
     # Crie uma lista de objetos de consulta na ordem em que deseja executá-los
     queries = [
-        # ClientesQuery(),
-        # ContasReceberQuery(),
-        # FornecedoresQuery(),
+        ClientesQuery(),
+        ContasReceberQuery(),
+        FornecedoresQuery(),
         ContasPagarQuery(),
-        # PlanoContaQuery(),
-        # ProdutosQuery(),
-        # GrupoProdutosQuery(),
-        # ItensVendaQuery(),
-        # VendasQuery(),
-        # VendedoresQuery(),
-        # EstoqueQuery(),
+        PlanoContaQuery(),
+        ProdutosQuery(),
+        GrupoProdutosQuery(),
+        ItensVendaQuery(),
+        VendasQuery(),
+        VendedoresQuery(),
+        EstoqueQuery(),
     ]
 
     for query in queries:
